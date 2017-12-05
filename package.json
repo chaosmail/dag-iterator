@@ -1,6 +1,6 @@
 {
   "name": "dag-iterator",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "utility tool to traverse DAG graphs in JavaScript",
   "main": "dist/node/index.js",
   "types": "dist/node/index.d.ts",
