@@ -33,7 +33,7 @@ const arrToObj = (d: any[], attr: string) => d.reduce((r: any, c: any) => {
 }, {});
 
 export function iterate(nodes: INode[], edges: IEdge[],
-                        iteratorFn: (node: INode, prev: INode[], i: number) => void) {
+                        iteratorFn: (node: INode, prev: INode[], i: number) => void, untilNode?: string) {
 
   const nodeStack: string[] = [];
   const nodeVisited: {[nodeName: string]: boolean} = {};
@@ -75,12 +75,11 @@ export function iterate(nodes: INode[], edges: IEdge[],
     // Call the iterator callback
     iteratorFn.call(null, layer, parentLayers, i++);
 
-    // // Check if we reached the end layer
-    // if (params.end && layer.name === params.end) {
-    //   break;
-    // }
-    // Get all children for this layer
-   
+    // Check if we reached the end layer
+    if (untilNode && node == untilNode) {
+      break;
+    }
+    
     // Only check adjacent nodes that have
     // not been visited yet
     getChildNodes(node, true).forEach((childNode) => {

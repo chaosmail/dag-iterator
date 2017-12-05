@@ -22,6 +22,7 @@ An utility tool to traverse DAG graphs in JavaScript by depth-first search. It a
     {src: "C", dst: "D"}
   ];
 
+  // Iterate the graph
   dagIterator.iterate(nodes, edges, function(node, parents, i){
     console.log(node, parents, i)
   });
@@ -32,6 +33,18 @@ An utility tool to traverse DAG graphs in JavaScript by depth-first search. It a
    * > Node B ["Node A"] 1
    * > Node C (2) ["Node A", "Node B"] 2
    * > Node D ["Node C"] 3
+   */
+  
+  // Iterate the graph until node C
+  dagIterator.iterate(nodes, edges, function(node, parents, i){
+    console.log(node, parents, i)
+  }, "C");
+
+  /*
+   * Outputs:
+   * > Node A [] 0
+   * > Node B ["Node A"] 1
+   * > Node C (2) ["Node A", "Node B"] 2
    */
 
 </script>
