@@ -1,0 +1,36 @@
+{
+  "name": "dag-iterator",
+  "version": "0.1.0",
+  "description": "utility tool to traverse DAG graphs in JavaScript",
+  "main": "dist/node/index.js",
+  "types": "dist/node/index.d.ts",
+  "unpkg": "dist/browser/dag-iterator.min.js",
+  "scripts": {
+    "build": "gulp build",
+    "publish-npm": "npm install && gulp build && npm publish"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chaosmail/dag-iterator.git"
+  },
+  "keywords": [
+    "caffe",
+    "graph",
+    "dag",
+    "iterator"
+  ],
+  "author": "Christoph Koerner",
+  "license": "MIT",
+  "devDependencies": {
+    "browserify": "^14.5.0",
+    "del": "^3.0.0",
+    "gulp": "^3.9.1",
+    "gulp-rename": "^1.2.2",
+    "gulp-typescript": "^3.2.3",
+    "run-sequence": "^2.2.0",
+    "tinyify": "^2.4.0",
+    "tsify": "^3.0.3",
+    "typescript": "^2.6.2",
+    "vinyl-source-stream": "^1.1.0"
+  }
+}
