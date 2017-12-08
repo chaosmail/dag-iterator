@@ -63,6 +63,16 @@ npm run build
 npm run test
 ```
 
+## Changelog
+
+* 0.2.2
+  * Add check if first node exists in edges
+* 0.2.1
+  * Add generic type to INode and iterate
+* 0.1.2
+  * Add until node parameter
+* 0.1.1
+  * Initial release
 
 ## License
 

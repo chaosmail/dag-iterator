@@ -1,6 +1,6 @@
-export interface INode {
+export interface INode<T> {
   name: string;
-  data: any;
+  data: T;
 }
 
 export interface IEdge {
@@ -32,8 +32,12 @@ const arrToObj = (d: any[], attr: string) => d.reduce((r: any, c: any) => {
   return r;
 }, {});
 
-export function iterate(nodes: INode[], edges: IEdge[],
-                        iteratorFn: (node: INode, prev: INode[], i: number) => void, untilNode?: string) {
+export function iterate<T>(nodes: INode<T>[], edges: IEdge[],
+                        iteratorFn: (node: T, prev: T[], i: number) => void, untilNode?: string) {
+  
+  if (nodes.length === 0 || edges.length === 0) {
+    return;
+  }
 
   const nodeStack: string[] = [];
   const nodeVisited: {[nodeName: string]: boolean} = {};
@@ -43,6 +47,15 @@ export function iterate(nodes: INode[], edges: IEdge[],
   
   const filterNotVisited = (d: string) => !nodeVisited.hasOwnProperty(d);
   const getLayerFromNode = (d: string) => nodeMap[d].data;
+
+  const getFirstNode = () => {
+    for (let i = 0; i < nodes.length; ++i) {
+      if (edgeSrcMap.hasOwnProperty(nodes[i].name)) {
+        return nodes[i].name;
+      }
+    }
+    return nodes[0].name;
+  }
 
   const getParentNodes = (d: string, unvisited: boolean = false) => {
     let parentKeys = edgeDstMap[d] as string[];
@@ -56,7 +69,7 @@ export function iterate(nodes: INode[], edges: IEdge[],
   }
 
   let i = 0;
-  nodeStack.push(nodes[0].name);
+  nodeStack.push(getFirstNode());
 
   while (nodeStack.length) {
     // Take a layer from the stack
