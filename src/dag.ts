@@ -40,7 +40,8 @@ export function iterate<T>(nodes: INode<T>[], edges: IEdge[],
   }
 
   const nodeStack: string[] = [];
-  const nodeVisited: {[nodeName: string]: boolean} = {};
+  // Stores the layer number for each node
+  const nodeVisited: {[nodeName: string]: number} = {};
   const nodeMap = arrToObj(nodes, 'name');
   const edgeSrcMap = tuplesToObj(edges.map((d) => [d.src, d.dst] as [string, string])) as IEdgeMap;
   const edgeDstMap = tuplesToObj(edges.map((d) => [d.dst, d.src] as [string, string])) as IEdgeMap;
@@ -48,13 +49,15 @@ export function iterate<T>(nodes: INode<T>[], edges: IEdge[],
   const filterNotVisited = (d: string) => !nodeVisited.hasOwnProperty(d);
   const getLayerFromNode = (d: string) => nodeMap[d].data;
 
-  const getFirstNode = () => {
-    for (let i = 0; i < nodes.length; ++i) {
-      if (edgeSrcMap.hasOwnProperty(nodes[i].name)) {
-        return nodes[i].name;
-      }
-    }
-    return nodes[0].name;
+
+/**
+ * Find the nodes that is the only the src of any edges.
+ */
+  const getFirstNodes = () => {
+    return nodes.filter((node) => {
+        return edgeSrcMap.hasOwnProperty(node.name) &&
+        !edgeDstMap.hasOwnProperty(node.name);
+    }).map(node => node.name);
   }
 
   const getParentNodes = (d: string, unvisited: boolean = false) => {
@@ -68,25 +71,27 @@ export function iterate<T>(nodes: INode<T>[], edges: IEdge[],
     return unvisited === false ? childNodes : childNodes.filter(filterNotVisited);
   }
 
-  let i = 0;
-  nodeStack.push(getFirstNode());
+  Array.prototype.push.apply(nodeStack, getFirstNodes());
 
   while (nodeStack.length) {
     // Take a layer from the stack
     const node = nodeStack.pop();
 
-    // Mark this node as visited
-    nodeVisited[node] = true;
-
     // Collect the previous Layers
     const parentNodes = getParentNodes(node);
+
+    // Mark this node as visited and record its layer count as
+    // max(parents) + 1
+    nodeVisited[node] = parentNodes.reduce(function (accu, curr) {
+      return (accu > nodeVisited[curr] + 1) ? accu : nodeVisited[curr] + 1;
+    }, 0);
 
     // Get the layer and previous layers
     const layer = getLayerFromNode(node);
     const parentLayers = parentNodes.map(getLayerFromNode);
     
     // Call the iterator callback
-    iteratorFn.call(null, layer, parentLayers, i++);
+    iteratorFn.call(null, layer, parentLayers, nodeVisited[node]);
 
     // Check if we reached the end layer
     if (untilNode && node == untilNode) {
