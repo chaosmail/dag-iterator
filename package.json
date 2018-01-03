@@ -6,6 +6,8 @@
   "types": "dist/node/index.d.ts",
   "unpkg": "dist/browser/dag-iterator.min.js",
   "scripts": {
+    "test": "karma start",
+    "test-travis": "karma start --browsers='Firefox,Chrome' --singleRun",
     "build": "gulp build",
     "publish-npm": "npm install && gulp build && npm publish"
   },
@@ -27,6 +29,13 @@
     "gulp": "^3.9.1",
     "gulp-rename": "^1.2.2",
     "gulp-typescript": "^3.2.3",
+    "jasmine-core": "~2.6.4",
+    "karma": "^1.7.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-firefox-launcher": "^1.0.1",
+    "karma-jasmine": "~1.1.0",
+    "karma-phantomjs-launcher": "^1.0.4",
+    "karma-typescript": "^3.0.8",
     "run-sequence": "^2.2.0",
     "tinyify": "^2.4.0",
     "tsify": "^3.0.3",
