@@ -113,7 +113,7 @@ npm run test
 ## Changelog
 
 * 0.3.0
-  * Add `iterateDfs` and `iterateBfs`
+  * Add `iterateDfs` and `iterateBfs`, add `depth` parameter in iteratorFn
 * 0.2.3
   * Start traversing from multiple nodes
 * 0.2.2
