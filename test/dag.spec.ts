@@ -24,7 +24,7 @@ describe('dagIterator::iterate', () => {
 
     var j = 0;
 
-    iterate<String>(nodes, edges, (node, parents, i) => {
+    iterate<String>(nodes, edges, (node, parents, i, depth) => {
       
       switch(j) {
         case 0:
@@ -73,7 +73,7 @@ describe('dagIterator::iterate', () => {
 
     var j = 0;
 
-    iterate<String>(nodes, edges, (node, parents, i) => {
+    iterate<String>(nodes, edges, (node, parents, i, depth) => {
       
       switch(j) {
         case 0:
@@ -120,7 +120,7 @@ describe('dagIterator::iterateDfs', () => {
 
     var j = 0;
 
-    iterateDfs<String>(nodes, edges, (node, parents, i) => {
+    iterateDfs<String>(nodes, edges, (node, parents, i, depth) => {
       
       switch(j) {
         case 0:
@@ -180,38 +180,44 @@ describe('dagIterator::iterateDfs', () => {
 
     var j = 0;
 
-    iterateDfs<String>(nodes, edges, (node, parents, i) => {
+    iterateDfs<String>(nodes, edges, (node, parents, i, depth) => {
       
       switch(j) {
         case 0:
           expect(node).toEqual(nodes[1].data);
           expect(parents).toEqual([]);
           expect(i).toEqual(0);
+          expect(depth).toEqual(0);
           break;
         case 1:
           expect(node).toEqual(nodes[2].data);
           expect(parents).toEqual([nodes[1].data]);
           expect(i).toEqual(1);
+          expect(depth).toEqual(1);
           break;
         case 2:
           expect(node).toEqual(nodes[5].data);
           expect(parents).toEqual([nodes[2].data]);
           expect(i).toEqual(2);
+          expect(depth).toEqual(2);
           break;
         case 3:
           expect(node).toEqual(nodes[0].data);
           expect(parents).toEqual([]);
-          expect(i).toEqual(0);
+          expect(i).toEqual(3);
+          expect(depth).toEqual(0);
           break;
         case 4:
           expect(node).toEqual(nodes[3].data);
           expect(parents).toEqual([nodes[0].data, nodes[2].data]);
-          expect(i).toEqual(2);
+          expect(i).toEqual(4);
+          expect(depth).toEqual(2);
           break;
         case 5:
           expect(node).toEqual(nodes[4].data);
           expect(parents).toEqual([nodes[3].data]);
-          expect(i).toEqual(3);
+          expect(i).toEqual(5);
+          expect(depth).toEqual(3);
           break;
         default:
           expect(false).toEqual(true);
@@ -249,38 +255,44 @@ describe('dagIterator::iterateBfs', () => {
 
     var j = 0;
 
-    iterateBfs<String>(nodes, edges, (node, parents, i) => {
+    iterateBfs<String>(nodes, edges, (node, parents, i, depth) => {
       
       switch(j) {
         case 0:
           expect(node).toEqual(nodes[0].data);
           expect(parents).toEqual([]);
           expect(i).toEqual(0);
+          expect(depth).toEqual(0);
           break;
         case 1:
           expect(node).toEqual(nodes[1].data);
           expect(parents).toEqual([]);
-          expect(i).toEqual(0);
+          expect(i).toEqual(1);
+          expect(depth).toEqual(0);
           break;
         case 2:
           expect(node).toEqual(nodes[2].data);
           expect(parents).toEqual([nodes[1].data]);
-          expect(i).toEqual(1);
+          expect(i).toEqual(2);
+          expect(depth).toEqual(1);
           break;
         case 3:
           expect(node).toEqual(nodes[3].data);
           expect(parents).toEqual([nodes[0].data, nodes[2].data]);
-          expect(i).toEqual(2);
+          expect(i).toEqual(3);
+          expect(depth).toEqual(2);
           break;
         case 4:
           expect(node).toEqual(nodes[5].data);
           expect(parents).toEqual([nodes[2].data]);
-          expect(i).toEqual(2);
+          expect(i).toEqual(4);
+          expect(depth).toEqual(2);
           break;
         case 5:
           expect(node).toEqual(nodes[4].data);
           expect(parents).toEqual([nodes[3].data]);
-          expect(i).toEqual(3);
+          expect(i).toEqual(5);
+          expect(depth).toEqual(3);
           break;
         default:
           expect(false).toEqual(true);
