@@ -75,8 +75,8 @@ export function iterate<T>(nodes: INode<T>[], edges: IEdge[],
   Array.prototype.push.apply(nodeStack, getFirstNodes());
 
   while (nodeStack.length) {
-    // Take the top layer from the stack
-    const node = nodeStack.shift();
+    // Take the latest layer from the stack
+    const node = nodeStack.pop();
 
     // Collect the previous Layers
     const parentNodes = getParentNodes(node);
