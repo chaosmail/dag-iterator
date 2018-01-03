@@ -23,16 +23,22 @@ const edges: dag.IEdge[] = [
   {src: "C", dst: "D"}
 ];
 
-dag.iterateDfs<String>(nodes, edges, (node, parents, i) => {
-  console.log(node, parents, i);
+//     ---► B
+//   /      |
+//  A       | 
+//   \      ▼
+//     ---► C ---► D
+
+dag.iterateDfs<String>(nodes, edges, (node, parents, i, depth) => {
+  console.log(node, parents, i, depth);
 });
 
 /*
  * Outputs:
- * > Node A [] 0
- * > Node B ["Node A"] 1
- * > Node C (2) ["Node A", "Node B"] 2
- * > Node D ["Node C"] 3
+ * > Node A [] 0 0
+ * > Node B ["Node A"] 1 1
+ * > Node C (2) ["Node A", "Node B"] 2 1
+ * > Node D ["Node C"] 3 2
  */
 
 ```
@@ -57,21 +63,27 @@ dag.iterateDfs<String>(nodes, edges, (node, parents, i) => {
     {src: "C", dst: "D"}
   ];
 
+  //     ---► B
+  //   /      |
+  //  A       | 
+  //   \      ▼
+  //     ---► C ---► D
+
   // Iterate the graph
-  dagIterator.iterateDfs(nodes, edges, function(node, parents, i){
-    console.log(node, parents, i);
+  dagIterator.iterateDfs(nodes, edges, function(node, parents, i, depth){
+    console.log(node, parents, i, depth);
   });
 
   /*
    * Outputs:
-   * > Node A [] 0
-   * > Node B ["Node A"] 1
-   * > Node C (2) ["Node A", "Node B"] 2
-   * > Node D ["Node C"] 3
+   * > Node A [] 0 0
+   * > Node B ["Node A"] 1 1
+   * > Node C (2) ["Node A", "Node B"] 2 1
+   * > Node D ["Node C"] 3 2
    */
   
   // Iterate the graph until node C
-  dagIterator.iterateDfs(nodes, edges, function(node, parents, i){
+  dagIterator.iterateDfs(nodes, edges, function(node, parents, i, depth){
     console.log(node, parents, i)
   }, "C");
 

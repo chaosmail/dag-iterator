@@ -42,7 +42,7 @@ const arrToObj = (d: any[], attr: string) => d.reduce((r: any, c: any) => {
   return r;
 }, {});
 
-export type IteratorFn<T> = (node: T, prev: T[], i: number) => void;
+export type IteratorFn<T> = (node: T, prev: T[], i: number, d: number) => void;
 
 /**
  * Traverse a Directed Acyclic Graph via Depth-first search
@@ -122,8 +122,10 @@ function _iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, opt
     return unvisited === false ? childNodes : childNodes.filter(filterNotVisited);
   }
 
-  // Initialize the stacks with all the nodes that have no parents.
+  // Initialize the storage with all starting nodes
   Array.prototype.push.apply(nodeStorage, getFirstNodes());
+
+  let i = 0;
 
   while (nodeStorage.length) {
     // Take the next element from the stack/queue
@@ -143,7 +145,7 @@ function _iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, opt
     const parentLayers = parentNodes.map(getLayerFromNode);
     
     // Call the iterator callback
-    func.call(null, layer, parentLayers, nodeVisited[node]);
+    func.call(null, layer, parentLayers, i++, nodeVisited[node]);
 
     // Check if we reached the end layer
     if (options.untilNode && node == options.untilNode) {
