@@ -47,7 +47,47 @@ describe('dagIterator::iterateDfs', () => {
     });
   });
 
-  it('iterateUntil', () => {
+  it('iterate with multiple starting nodes', () => {
+    
+    const nodes = [
+      {name: "A", data: "Node A"},
+      {name: "B", data: "Node B"},
+      {name: "C", data: "Node C"},
+      {name: "D", data: "Node D"}
+    ];
+
+    const edges = [
+      {src: "A", dst: "D"},
+      {src: "B", dst: "C"},
+      {src: "C", dst: "D"}
+    ];
+
+    var j = 0;
+
+    iterate<String>(nodes, edges, (node, parents, i) => {
+      
+      switch(j) {
+        case 0:
+          expect(node).toEqual(nodes[1].data);
+          expect(parents).toEqual([]);
+          break;
+        case 1:
+          expect(node).toEqual(nodes[0].data);
+          expect(parents).toEqual([]);
+          break;
+        case 2:
+          expect(node).toEqual(nodes[2].data);
+          expect(parents).toEqual([nodes[0].data, nodes[1].data]);
+          break;
+        default:
+          expect(false).toEqual(true);
+      }
+
+      j += 1;
+    }, nodes[1].name);
+  });
+
+  it('iterate until node', () => {
     
     const nodes = [
       {name: "A", data: "Node A"},
