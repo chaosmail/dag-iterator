@@ -1,1 +1,1 @@
-export {INode, IEdge, iterate} from './dag';
+export {INode, IEdge, iterate, iterateDfs, iterateBfs} from './dag';

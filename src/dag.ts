@@ -12,6 +12,16 @@ interface IEdgeMap {
   [nodeName: string]: string[];
 }
 
+export enum TraversalMode {
+  DFS,
+  BFS,
+}
+
+export interface IIteratorOptions {
+  untilNode?: string;
+  traversalMode: TraversalMode;
+}
+
 type tuple = [string, string];
 
 const tuplesToObj = (d: tuple[]) => d.reduce((r: any, c: tuple) => {
@@ -32,14 +42,54 @@ const arrToObj = (d: any[], attr: string) => d.reduce((r: any, c: any) => {
   return r;
 }, {});
 
-export function iterate<T>(nodes: INode<T>[], edges: IEdge[],
-                        iteratorFn: (node: T, prev: T[], i: number) => void, untilNode?: string) {
+export type IteratorFn<T> = (node: T, prev: T[], i: number) => void;
+
+/**
+ * Traverse a Directed Acyclic Graph via Depth-first search
+ * @arg nodes array of nodes describing the graph
+ * @arg edges array of edges describing the graph
+ * @arg func iterator callback
+ * @arg untilNode iterate until specific node
+ */
+export function iterateDfs<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, untilNode?: string) {
+  const options: IIteratorOptions = {
+    traversalMode: TraversalMode.DFS,
+    untilNode: untilNode,
+  };
+  return _iterate(nodes, edges, func, options);
+}
+
+/**
+ * Traverse a Directed Acyclic Graph via Breadth-first search
+ * @arg nodes array of nodes describing the graph
+ * @arg edges array of edges describing the graph
+ * @arg func iterator callback
+ * @arg untilNode iterate until specific node
+ */
+export function iterateBfs<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, untilNode?: string) {
+  const options: IIteratorOptions = {
+    traversalMode: TraversalMode.BFS,
+    untilNode: untilNode,
+  };
+  return _iterate(nodes, edges, func, options);
+}
+
+/**
+ * Compatibility for old API 0.2.3, defaults to DFS
+ */
+export function iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, untilNode?: string) {
+  return iterateDfs(nodes, edges, func, untilNode);
+}
+
+function _iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, options: IIteratorOptions) {
   
   if (nodes.length === 0 || edges.length === 0) {
     return;
   }
 
-  const nodeStack: string[] = [];
+  // depending on TraversalMode, this acts as stack or queue
+  const nodeStorage: string[] = [];
+
   // Stores the layer number for each node
   const nodeVisited: {[nodeName: string]: number} = {};
   const nodeMap = arrToObj(nodes, 'name');
@@ -49,15 +99,16 @@ export function iterate<T>(nodes: INode<T>[], edges: IEdge[],
   const filterNotVisited = (d: string) => !nodeVisited.hasOwnProperty(d);
   const getLayerFromNode = (d: string) => nodeMap[d].data;
 
+  const getNextNode = (arr: string[]) => {
+    return options.traversalMode === TraversalMode.DFS ? arr.pop() : arr.shift();
+  }
 
-/**
- * Find the nodes that is the only the src of any edges.
- */
+  // Find the nodes that is the only the src of any edges.
   const getFirstNodes = () => {
     return nodes.filter((node) => {
-        return edgeSrcMap.hasOwnProperty(node.name) &&
-        !edgeDstMap.hasOwnProperty(node.name);
-    }).map(node => node.name);
+      return edgeSrcMap.hasOwnProperty(node.name) && !edgeDstMap.hasOwnProperty(node.name);
+    })
+    .map(node => node.name);
   }
 
   const getParentNodes = (d: string, unvisited: boolean = false) => {
@@ -72,11 +123,11 @@ export function iterate<T>(nodes: INode<T>[], edges: IEdge[],
   }
 
   // Initialize the stacks with all the nodes that have no parents.
-  Array.prototype.push.apply(nodeStack, getFirstNodes());
+  Array.prototype.push.apply(nodeStorage, getFirstNodes());
 
-  while (nodeStack.length) {
-    // Take the latest layer from the stack
-    const node = nodeStack.pop();
+  while (nodeStorage.length) {
+    // Take the next element from the stack/queue
+    const node = getNextNode(nodeStorage);
 
     // Collect the previous Layers
     const parentNodes = getParentNodes(node);
@@ -92,10 +143,10 @@ export function iterate<T>(nodes: INode<T>[], edges: IEdge[],
     const parentLayers = parentNodes.map(getLayerFromNode);
     
     // Call the iterator callback
-    iteratorFn.call(null, layer, parentLayers, nodeVisited[node]);
+    func.call(null, layer, parentLayers, nodeVisited[node]);
 
     // Check if we reached the end layer
-    if (untilNode && node == untilNode) {
+    if (options.untilNode && node == options.untilNode) {
       break;
     }
     
@@ -109,7 +160,7 @@ export function iterate<T>(nodes: INode<T>[], edges: IEdge[],
       // All previous parents have been visited
       if (unvisitedParents.length === 0) {
         // Add the layer to the stack
-        nodeStack.push(childNode);
+        nodeStorage.push(childNode);
       }
     });
   }

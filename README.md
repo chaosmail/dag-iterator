@@ -23,7 +23,7 @@ const edges: dag.IEdge[] = [
   {src: "C", dst: "D"}
 ];
 
-dag.iterate<String>(nodes, edges, (node, parents, i) => {
+dag.iterateDfs<String>(nodes, edges, (node, parents, i) => {
   console.log(node, parents, i);
 });
 
@@ -58,7 +58,7 @@ dag.iterate<String>(nodes, edges, (node, parents, i) => {
   ];
 
   // Iterate the graph
-  dagIterator.iterate(nodes, edges, function(node, parents, i){
+  dagIterator.iterateDfs(nodes, edges, function(node, parents, i){
     console.log(node, parents, i);
   });
 
@@ -71,7 +71,7 @@ dag.iterate<String>(nodes, edges, (node, parents, i) => {
    */
   
   // Iterate the graph until node C
-  dagIterator.iterate(nodes, edges, function(node, parents, i){
+  dagIterator.iterateDfs(nodes, edges, function(node, parents, i){
     console.log(node, parents, i)
   }, "C");
 
@@ -100,6 +100,8 @@ npm run test
 
 ## Changelog
 
+* 0.3.0
+  * Add `iterateDfs` and `iterateBfs`
 * 0.2.3
   * Start traversing from multiple nodes
 * 0.2.2
