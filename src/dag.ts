@@ -71,19 +71,20 @@ export function iterate<T>(nodes: INode<T>[], edges: IEdge[],
     return unvisited === false ? childNodes : childNodes.filter(filterNotVisited);
   }
 
+  // Initialize the stacks with all the nodes that have no parents.
   Array.prototype.push.apply(nodeStack, getFirstNodes());
 
   while (nodeStack.length) {
-    // Take a layer from the stack
-    const node = nodeStack.pop();
+    // Take the top layer from the stack
+    const node = nodeStack.shift();
 
     // Collect the previous Layers
     const parentNodes = getParentNodes(node);
 
     // Mark this node as visited and record its layer count as
     // max(parents) + 1
-    nodeVisited[node] = parentNodes.reduce(function (accu, curr) {
-      return (accu > nodeVisited[curr] + 1) ? accu : nodeVisited[curr] + 1;
+    nodeVisited[node] = parentNodes.reduce((prev, curr) => {
+      return Math.max(prev, nodeVisited[curr] + 1);
     }, 0);
 
     // Get the layer and previous layers
