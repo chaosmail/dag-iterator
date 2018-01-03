@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/chaosmail/dag-iterator.svg?branch=master)](https://travis-ci.org/chaosmail/dag-iterator)
+
 # DAG Iterator
 
 An utility tool to traverse DAG graphs in JavaScript by depth-first search. It automatically injects the previous nodes as arguments for the current node. This can be used in Deep Learning to traverse the model graph of a DNN such as GoogLeNet.
@@ -98,6 +100,8 @@ npm run test
 
 ## Changelog
 
+* 0.2.3
+  * Start traversing from multiple nodes
 * 0.2.2
   * Add check if first node exists in edges
 * 0.2.1
