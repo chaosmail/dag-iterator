@@ -1,15 +1,17 @@
 language: node_js
+dist: trusty
+
 node_js:
-  - "7"
+  - '8.9.1'
 
 addons:
   chrome: stable
   firefox: stable
 
 before_install:
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
-  - sleep 3 # give xvfb some time to start
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
+  - sleep 3
 
 install:
   - npm install
@@ -17,3 +19,20 @@ install:
 script:
   - npm run build
   - npm run test-travis
+
+before_deploy:
+  - git config --global user.email "builds@travis-ci.com"
+  - git config --global user.name "Travis CI"
+  - export VERSION=$(node -p "require('./package.json').version")
+  - git tag $VERSION -a -m "v$VERSION"
+  - git push origin $VERSION
+
+deploy:
+  skip_cleanup: true
+  provider: npm
+  email: office@chaosmail.at
+  api_key:
+    secure: NU/UjEzbHpG4Eq/5fW51ZUC2N/QdqCFpqi1jw3hFnH0pbWs0t2CTQs2uIx58P/ldBy7o9zicLCCynan4J+QKP01NFHTUD1SnyYEtvlRHmCLZsR9+f5Rj4EW5K1pmJ9jAY9nfwLVGyr+iUQXwx+WOJb+pIVxHzX/l2+4vHcQ77sXhHq+K2c1wQfcAR5rTokXuJivygweDh9vG29xJA2N147N/Iyujfvqn+jTEIFDnHKs3W05BqFfebr7G/IkSr4bc2OXSmh7qc9zU0W7gLx8wSEiaOzVMDd0eMz908jZwFZjNEw9O03e39n7s3+0dRe1CWilXC72Y6PoER2wzmGnzQX+uGPO5zpebg7AEvC6wxNxWkO/8dXJmJ69jw2zToLpBIT2FZ1ouaHuQqbMAmqnLANbX2wC0o4efG32LIF6ZNo8cLYNkFCiG5F4HuipblP2Srq3cOa7j90nYT3jsWOLlaOxMYrHc1NL5zZgQLgigNKmEEJuTgvyo/omCBeIG+Nn2cfmrhXjTR2O9P0PY9RF3EVEbpor3skDGtTrbY0E31VGWKvhS5MhfUWTsEkmRd5BscItc1XNqjPH/eWo6jAErRASV8fXEnOaW/BoOaRZvv7Hgxc4KQhS7bng/amWahsQ0OODyLmW8mfd45YCBlpBo6Vb/NRcDY+cJ2p9aN7S8X/0=
+  on:
+    branch: master
+    condition: $(npm view dag-iterator dist-tags.latest) != $(node -p "require('./package.json').version")
