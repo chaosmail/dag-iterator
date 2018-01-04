@@ -1,15 +1,14 @@
+export type NodeName = string;
+export type Tuple<T> = [T, T];
+
 export interface INode<T> {
-  name: string;
+  name: NodeName;
   data: T;
 }
 
 export interface IEdge {
-  src: string;
-  dst: string;
-}
-
-interface IEdgeMap {
-  [nodeName: string]: string[];
+  src: NodeName;
+  dst: NodeName;
 }
 
 export enum TraversalMode {
@@ -18,40 +17,20 @@ export enum TraversalMode {
 }
 
 export interface IIteratorOptions {
-  untilNode?: string;
+  untilNode?: NodeName;
   traversalMode: TraversalMode;
 }
-
-type tuple = [string, string];
-
-const tuplesToObj = (d: tuple[]) => d.reduce((r: any, c: tuple) => {
-  // load tuple [key,val] pair
-  let key = c[0], val = c[1];
-  // combine old and new value to an array
-  r[key] = r.hasOwnProperty(key) ? [].concat(r[key], val) : [val];
-  // return the object
-  return r;
-}, {});
-
-const arrToObj = (d: any[], attr: string) => d.reduce((r: any, c: any) => {
-  // load [key,val] pair
-  let key = c[attr], val = c;
-  // combine old and new value to an array
-  r[key] = r.hasOwnProperty(key) ? [].concat(r[key], val) : val;
-  // return the object
-  return r;
-}, {});
 
 export type IteratorFn<T> = (node: T, prev: T[], i: number, d: number) => void;
 
 /**
  * Traverse a Directed Acyclic Graph via Depth-first search
- * @arg nodes array of nodes describing the graph
- * @arg edges array of edges describing the graph
- * @arg func iterator callback
- * @arg untilNode iterate until specific node
+ * @param nodes - array of nodes defining the graph
+ * @param edges - array of edges defining the graph
+ * @param func - iterator callback
+ * @param untilNode - iterate until specific node
  */
-export function iterateDfs<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, untilNode?: string) {
+export function iterateDfs<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, untilNode?: NodeName) {
   const options: IIteratorOptions = {
     traversalMode: TraversalMode.DFS,
     untilNode: untilNode,
@@ -61,12 +40,12 @@ export function iterateDfs<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorF
 
 /**
  * Traverse a Directed Acyclic Graph via Breadth-first search
- * @arg nodes array of nodes describing the graph
- * @arg edges array of edges describing the graph
- * @arg func iterator callback
- * @arg untilNode iterate until specific node
+ * @param nodes - array of nodes defining the graph
+ * @param edges - array of edges defining the graph
+ * @param func - iterator callback
+ * @param untilNode - iterate until specific node
  */
-export function iterateBfs<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, untilNode?: string) {
+export function iterateBfs<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, untilNode?: NodeName) {
   const options: IIteratorOptions = {
     traversalMode: TraversalMode.BFS,
     untilNode: untilNode,
@@ -75,12 +54,31 @@ export function iterateBfs<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorF
 }
 
 /**
- * Compatibility for old API 0.2.3, defaults to DFS
+ * Compatibility for old API 0.2.3, defaults to iterateDfs
  */
-export function iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, untilNode?: string) {
+export function iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, untilNode?: NodeName) {
   return iterateDfs(nodes, edges, func, untilNode);
 }
 
+interface INodeMap<T> {
+  [nodeName: string]: INode<T>;
+}
+
+interface INodeVisited {
+  [nodeName: string]: number;
+}
+
+interface IEdgeMap {
+  [nodeName: string]: NodeName[];
+}
+
+/**
+ * Traverse a graph defined by nodes and edges
+ * @param {INode<T>[]} nodes - array of nodes
+ * @param {IEdge[]} edges - array of edges
+ * @param {IteratorFn<T>} func - iterator callback
+ * @param {IIteratorOptions} options - iterator options
+ */
 function _iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, options: IIteratorOptions) {
   
   if (nodes.length === 0 || edges.length === 0) {
@@ -88,40 +86,20 @@ function _iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, opt
   }
 
   // depending on TraversalMode, this acts as stack or queue
-  const nodeStorage: string[] = [];
+  const nodeStorage: NodeName[] = [];
 
   // Stores the layer number for each node
-  const nodeVisited: {[nodeName: string]: number} = {};
-  const nodeMap = arrToObj(nodes, 'name');
-  const edgeSrcMap = tuplesToObj(edges.map((d) => [d.src, d.dst] as [string, string])) as IEdgeMap;
-  const edgeDstMap = tuplesToObj(edges.map((d) => [d.dst, d.src] as [string, string])) as IEdgeMap;
+  const nodeVisited: INodeVisited = {};
+  const nodeMap: INodeMap<T> = arrToObj(nodes, 'name');
   
-  const filterNotVisited = (d: string) => !nodeVisited.hasOwnProperty(d);
-  const getLayerFromNode = (d: string) => nodeMap[d].data;
-
-  const getNextNode = (arr: string[]) => {
-    return options.traversalMode === TraversalMode.DFS ? arr.pop() : arr.shift();
-  }
-
-  // Find the nodes that is the only the src of any edges.
-  const getFirstNodes = () => {
-    return nodes.filter((node) => {
-      return edgeSrcMap.hasOwnProperty(node.name) && !edgeDstMap.hasOwnProperty(node.name);
-    })
-    .map(node => node.name);
-  }
-
-  const getParentNodes = (d: string, unvisited: boolean = false) => {
-    let parentKeys = edgeDstMap[d] as string[];
-    let parentNodes = parentKeys === undefined ? [] : parentKeys;
-    return unvisited === false ? parentNodes : parentNodes.filter(filterNotVisited);
-  }
-  const getChildNodes = (d: string, unvisited: boolean = false) => {
-    let childKeys = edgeSrcMap[d] as string[];
-    let childNodes =  childKeys === undefined ? [] : childKeys;
-    return unvisited === false ? childNodes : childNodes.filter(filterNotVisited);
-  }
-
+  // map containing all outgoing edges per node
+  const edgeSrcMap = tuplesToObj<NodeName>(edges.map((edge) =>
+    [edge.src, edge.dst] as Tuple<NodeName>)) as IEdgeMap;
+  
+  // map containing all incoming edges per node
+  const edgeDstMap = tuplesToObj<NodeName>(edges.map((edge) =>
+    [edge.dst, edge.src] as Tuple<NodeName>)) as IEdgeMap;
+  
   // Initialize the storage with all starting nodes
   Array.prototype.push.apply(nodeStorage, getFirstNodes());
 
@@ -129,7 +107,7 @@ function _iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, opt
 
   while (nodeStorage.length) {
     // Take the next element from the stack/queue
-    const node = getNextNode(nodeStorage);
+    const node = getNextNode(nodeStorage, options.traversalMode);
 
     // Collect the previous Layers
     const parentNodes = getParentNodes(node);
@@ -141,11 +119,11 @@ function _iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, opt
     }, 0);
 
     // Get the layer and previous layers
-    const layer = getLayerFromNode(node);
-    const parentLayers = parentNodes.map(getLayerFromNode);
+    const nodeData = getDataFromNode(node);
+    const parentNodesData = parentNodes.map(getDataFromNode);
     
     // Call the iterator callback
-    func.call(null, layer, parentLayers, i++, nodeVisited[node]);
+    func.call(null, nodeData, parentNodesData, i++, nodeVisited[node]);
 
     // Check if we reached the end layer
     if (options.untilNode && node == options.untilNode) {
@@ -161,9 +139,103 @@ function _iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, opt
 
       // All previous parents have been visited
       if (unvisitedParents.length === 0) {
-        // Add the layer to the stack
+        // Add the layer to the stack/queue
         nodeStorage.push(childNode);
       }
     });
   }
+
+  /**
+   * Find the starting nodes
+   * Starting nodes have outgoing edges but no incoming edge
+   * @return {NodeName[]} array of starting nodes
+   */
+  function getFirstNodes(): NodeName[] {
+    return nodes.filter((node) => {
+      return edgeSrcMap.hasOwnProperty(node.name) && !edgeDstMap.hasOwnProperty(node.name);
+    })
+    .map(node => node.name);
+  }
+
+  /**
+   * Returns the next node from the array arr
+   * depending on TraversalMode set in the options
+   * @param  {NodeName[]} arr - array of nodes
+   * @param  {TraversalMode} traversalMode - DFS or BFS
+   * @return {NodeName} next node
+   */
+  function getNextNode(arr: NodeName[], traversalMode: TraversalMode): NodeName {
+    return traversalMode === TraversalMode.DFS ? arr.pop() : arr.shift();
+  }
+
+  /**
+   * Returns all parent nodes of a current node
+   * @param {NodeName} nodeName - current node
+   * @param {boolean=false} onlyUnvisited - flag to return only unvisited nodes
+   * @return {NodeName[]} array of parent nodes
+   */
+  function getParentNodes(nodeName: NodeName, onlyUnvisited: boolean = false): NodeName[] {
+    let parentNodes = edgeDstMap[nodeName] || [] as NodeName[];
+    return onlyUnvisited === false ? parentNodes : parentNodes.filter(filterNotVisited);
+  }
+
+  /**
+   * Returns all child nodes of a current node
+   * @param {NodeName} nodeName - current node
+   * @param {boolean=false} onlyUnvisited - flag to return only unvisited nodes
+   * @return {NodeName[]} array of child nodes
+   */
+  function getChildNodes (nodeName: NodeName, onlyUnvisited: boolean = false): NodeName[] {
+    let childNodes = edgeSrcMap[nodeName] || [] as NodeName[];
+    return onlyUnvisited === false ? childNodes : childNodes.filter(filterNotVisited);
+  }
+
+  /**
+   * Filter function to filter unvisited nodes
+   * @param  {NodeName} nodeName
+   * @return {boolean}
+   */
+  function filterNotVisited(nodeName: NodeName): boolean {
+    return !nodeVisited.hasOwnProperty(nodeName);
+  }
+
+  /**
+   * Return the data from a node
+   * @param  {NodeName} nodeName
+   * @return {T} node data
+   */
+  function getDataFromNode(nodeName: NodeName): T {
+    return nodeMap[nodeName].data as T;
+  }
+}
+
+/**
+ *  Converts an array of tuples to an object. All properties are arrays.
+ *  [[a,b], [a,c], [c,d]] => {a: [b,c], c: [d]}
+ */
+function tuplesToObj<T> (tuples: Tuple<T>[]): Object {
+  return tuples.reduce((prev: any, curr: Tuple<T>) => {
+    // load tuple [key,val] pair
+    let key = curr[0], val = curr[1];
+    // combine old and new value to an array
+    prev[key] = prev.hasOwnProperty(key) ? [].concat(prev[key], val) : [val];
+    // return the object
+    return prev;
+  }, {});
+}
+
+/**
+ *  Converts an array of objects to an object using the property attr.
+ *  Only properties with multiple elements are arrays.
+ *  [{t:a,d:b}, {t:a,d:c}, {t:c,d:d} => {a: [b,c], c: d}
+ */
+function arrToObj (arr: any[], attr: string): any {
+  return arr.reduce((prev: any, curr: any) => {
+    // load [key,val] pair
+    let key = curr[attr], val = curr;
+    // combine old and new value to an array
+    prev[key] = prev.hasOwnProperty(key) ? [].concat(prev[key], val) : val;
+    // return the object
+    return prev;
+  }, {});
 }
