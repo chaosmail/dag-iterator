@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/chaosmail/dag-iterator.svg?branch=master)](https://travis-ci.org/chaosmail/dag-iterator)
+[![npm version](https://badge.fury.io/js/dag-iterator.svg)](https://badge.fury.io/js/dag-iterator)
 
 # DAG Iterator
 
