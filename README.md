@@ -5,7 +5,21 @@
 
 An utility tool to traverse DAG graphs in JavaScript by depth-first search. It automatically injects the previous nodes as arguments for the current node. This can be used in Deep Learning to traverse the model graph of a DNN such as GoogLeNet.
 
-## Usage Typescript
+## Usage
+
+Install the library via NPM
+
+```sh
+npm install dag-iterator --save
+```
+
+or embed it from a CDN
+
+```html
+<script src="https://unpkg.com/dag-iterator"></script>
+```
+
+### Typescript
 
 ```ts
 import * as dag from 'dag-iterator';
@@ -60,7 +74,7 @@ dag.iterateBfs<String>(nodes, edges, (node, parents, i, depth) => {
 
 ```
 
-## Usage Browser
+### Browser
 
 ```html
 <script src="https://unpkg.com/dag-iterator"></script>
@@ -130,6 +144,8 @@ npm run build
 # Run the tests
 npm run test
 ```
+
+> The master branch is auto deployed to NPM if the version in `package.json` is different than the one on NPM.
 
 ## Changelog
 
