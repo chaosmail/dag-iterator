@@ -8,24 +8,24 @@ describe('dagIterator::iterate', () => {
       {name: "A", data: "Node A"},
       {name: "B", data: "Node B"},
       {name: "C", data: "Node C"},
-      {name: "D", data: "Node D"}
+      {name: "D", data: "Node D"},
+      {name: "E", data: "Node E"}
     ];
 
-    //  A --- B 
+    //  A --- B --- C
     //   \     \ 
-    //    ----- C --- D
+    //    ----- D --- E
 
     const edges: IEdge[] = [
       {src: "A", dst: "B"},
-      {src: "A", dst: "C"},
+      {src: "A", dst: "D"},
       {src: "B", dst: "C"},
-      {src: "C", dst: "D"}
+      {src: "B", dst: "D"},
+      {src: "D", dst: "E"}
     ];
 
-    var j = 0;
-
+    let j = 0;
     iterate<String>(nodes, edges, (node, parents, i, depth) => {
-      
       switch(j) {
         case 0:
           expect(node).toEqual(nodes[0].data);
@@ -36,18 +36,21 @@ describe('dagIterator::iterate', () => {
           expect(parents).toEqual([nodes[0].data]);
           break;
         case 2:
-          expect(node).toEqual(nodes[2].data);
+          expect(node).toEqual(nodes[3].data);
           expect(parents).toEqual([nodes[0].data, nodes[1].data]);
           break;
         case 3:
-          expect(node).toEqual(nodes[3].data);
-          expect(parents).toEqual([nodes[2].data]);
+          expect(node).toEqual(nodes[4].data);
+          expect(parents).toEqual([nodes[3].data]);
+          break;
+        case 4:
+          expect(node).toEqual(nodes[2].data);
+          expect(parents).toEqual([nodes[1].data]);
           break;
         default:
           expect(false).toEqual(true);
       }
-
-      j += 1;
+      j++;
     });
   });
 
@@ -71,11 +74,10 @@ describe('dagIterator::iterate', () => {
       {src: "C", dst: "D"}
     ];
 
-    var j = 0;
-
+    let j = 0;
     iterate<String>(nodes, edges, (node, parents, i, depth) => {
       
-      switch(j) {
+      switch(i) {
         case 0:
           expect(node).toEqual(nodes[0].data);
           expect(parents).toEqual([]);
@@ -87,8 +89,7 @@ describe('dagIterator::iterate', () => {
         default:
           expect(false).toEqual(true);
       }
-
-      j += 1;
+      j++;
     }, nodes[1].name);
   });
 });
@@ -103,9 +104,12 @@ describe('dagIterator::iterateDfs', () => {
       {name: "C", data: "Node C"},
       {name: "D", data: "Node D"},
       {name: "E", data: "Node E"},
-      {name: "F", data: "Node F"}
+      {name: "F", data: "Node F"},
+      {name: "G", data: "Node G"}
     ];
 
+    //                G
+    //               /
     //  A --- B --- C --- D
     //         \
     //          ----- E --- F
@@ -115,14 +119,14 @@ describe('dagIterator::iterateDfs', () => {
       {src: "B", dst: "C"},
       {src: "C", dst: "D"},
       {src: "B", dst: "E"},
-      {src: "E", dst: "F"}
+      {src: "E", dst: "F"},
+      {src: "C", dst: "G"}
     ];
 
-    var j = 0;
-
+    let j = 0;
     iterateDfs<String>(nodes, edges, (node, parents, i, depth) => {
       
-      switch(j) {
+      switch(i) {
         case 0:
           expect(node).toEqual(nodes[0].data);
           expect(parents).toEqual([]);
@@ -132,26 +136,29 @@ describe('dagIterator::iterateDfs', () => {
           expect(parents).toEqual([nodes[0].data]);
           break;
         case 2:
-          expect(node).toEqual(nodes[4].data);
-          expect(parents).toEqual([nodes[1].data]);
-          break;
-        case 3:
-          expect(node).toEqual(nodes[5].data);
-          expect(parents).toEqual([nodes[4].data]);
-          break;
-        case 4:
           expect(node).toEqual(nodes[2].data);
           expect(parents).toEqual([nodes[1].data]);
           break;
-        case 5:
+        case 3:
+          expect(node).toEqual(nodes[6].data);
+          expect(parents).toEqual([nodes[2].data]);
+          break;
+        case 4:
           expect(node).toEqual(nodes[3].data);
           expect(parents).toEqual([nodes[2].data]);
+          break;
+        case 5:
+          expect(node).toEqual(nodes[4].data);
+          expect(parents).toEqual([nodes[1].data]);
+          break;
+        case 6:
+          expect(node).toEqual(nodes[5].data);
+          expect(parents).toEqual([nodes[4].data]);
           break;
         default:
           expect(false).toEqual(true);
       }
-
-      j += 1;
+      j++;
     });
   });
 
@@ -163,67 +170,77 @@ describe('dagIterator::iterateDfs', () => {
       {name: "C", data: "Node C"},
       {name: "D", data: "Node D"},
       {name: "E", data: "Node E"},
-      {name: "F", data: "Node F"}
+      {name: "F", data: "Node F"},
+      {name: "G", data: "Node G"}
     ];
 
+    //     G
+    //   / 
     //  A --- D --- E
     //         \ 
     //    B --- C --- F
+    //
+    //  A => D => E => G => B => C => F
 
     const edges = [
       {src: "A", dst: "D"},
+      {src: "A", dst: "G"},      
       {src: "B", dst: "C"},
-      {src: "C", dst: "D"},
+      {src: "D", dst: "C"},
       {src: "D", dst: "E"},
       {src: "C", dst: "F"}
     ];
 
-    var j = 0;
-
+    let j = 0;
     iterateDfs<String>(nodes, edges, (node, parents, i, depth) => {
       
       switch(j) {
         case 0:
-          expect(node).toEqual(nodes[1].data);
+          expect(node).toEqual(nodes[0].data);
           expect(parents).toEqual([]);
           expect(i).toEqual(0);
           expect(depth).toEqual(0);
           break;
         case 1:
-          expect(node).toEqual(nodes[2].data);
-          expect(parents).toEqual([nodes[1].data]);
+          expect(node).toEqual(nodes[3].data);
+          expect(parents).toEqual([nodes[0].data]);
           expect(i).toEqual(1);
           expect(depth).toEqual(1);
           break;
         case 2:
-          expect(node).toEqual(nodes[5].data);
-          expect(parents).toEqual([nodes[2].data]);
+          expect(node).toEqual(nodes[4].data);
+          expect(parents).toEqual([nodes[3].data]);
           expect(i).toEqual(2);
           expect(depth).toEqual(2);
           break;
         case 3:
-          expect(node).toEqual(nodes[0].data);
-          expect(parents).toEqual([]);
+          expect(node).toEqual(nodes[6].data);
+          expect(parents).toEqual([nodes[0].data]);
           expect(i).toEqual(3);
+          expect(depth).toEqual(1);
+          break;          
+        case 4:
+          expect(node).toEqual(nodes[1].data);
+          expect(parents).toEqual([]);
+          expect(i).toEqual(4);
           expect(depth).toEqual(0);
           break;
-        case 4:
-          expect(node).toEqual(nodes[3].data);
-          expect(parents).toEqual([nodes[0].data, nodes[2].data]);
-          expect(i).toEqual(4);
+        case 5:
+          expect(node).toEqual(nodes[2].data);
+          expect(parents).toEqual([nodes[1].data, nodes[3].data]);
+          expect(i).toEqual(5);
           expect(depth).toEqual(2);
           break;
-        case 5:
-          expect(node).toEqual(nodes[4].data);
-          expect(parents).toEqual([nodes[3].data]);
-          expect(i).toEqual(5);
+        case 6:
+          expect(node).toEqual(nodes[5].data);
+          expect(parents).toEqual([nodes[2].data]);
+          expect(i).toEqual(6);
           expect(depth).toEqual(3);
           break;
         default:
           expect(false).toEqual(true);
       }
-
-      j += 1;
+      j++;
     });
   });
 });
@@ -238,34 +255,38 @@ describe('dagIterator::iterateBfs', () => {
       {name: "C", data: "Node C"},
       {name: "D", data: "Node D"},
       {name: "E", data: "Node E"},
-      {name: "F", data: "Node F"}
+      {name: "F", data: "Node F"},
+      {name: "G", data: "Node G"}
     ];
 
     //  A --- D --- E
     //         \ 
     //    B --- C --- F
-
+    //     \
+    //      G
+    //
+    // B => A => C => G => D => F => E
     const edges = [
       {src: "A", dst: "D"},
       {src: "B", dst: "C"},
+      {src: "B", dst: "G"},
       {src: "C", dst: "D"},
       {src: "D", dst: "E"},
       {src: "C", dst: "F"}
     ];
 
-    var j = 0;
-
+    let j = 0;
     iterateBfs<String>(nodes, edges, (node, parents, i, depth) => {
       
       switch(j) {
         case 0:
-          expect(node).toEqual(nodes[0].data);
+          expect(node).toEqual(nodes[1].data);
           expect(parents).toEqual([]);
           expect(i).toEqual(0);
           expect(depth).toEqual(0);
           break;
         case 1:
-          expect(node).toEqual(nodes[1].data);
+          expect(node).toEqual(nodes[0].data);
           expect(parents).toEqual([]);
           expect(i).toEqual(1);
           expect(depth).toEqual(0);
@@ -277,28 +298,33 @@ describe('dagIterator::iterateBfs', () => {
           expect(depth).toEqual(1);
           break;
         case 3:
-          expect(node).toEqual(nodes[3].data);
-          expect(parents).toEqual([nodes[0].data, nodes[2].data]);
+          expect(node).toEqual(nodes[6].data);
+          expect(parents).toEqual([nodes[1].data]);
           expect(i).toEqual(3);
-          expect(depth).toEqual(2);
+          expect(depth).toEqual(1);
           break;
         case 4:
-          expect(node).toEqual(nodes[5].data);
-          expect(parents).toEqual([nodes[2].data]);
+          expect(node).toEqual(nodes[3].data);
+          expect(parents).toEqual([nodes[0].data, nodes[2].data]);
           expect(i).toEqual(4);
           expect(depth).toEqual(2);
           break;
         case 5:
+          expect(node).toEqual(nodes[5].data);
+          expect(parents).toEqual([nodes[2].data]);
+          expect(i).toEqual(5);
+          expect(depth).toEqual(2);
+          break;
+        case 6:
           expect(node).toEqual(nodes[4].data);
           expect(parents).toEqual([nodes[3].data]);
-          expect(i).toEqual(5);
+          expect(i).toEqual(6);
           expect(depth).toEqual(3);
           break;
         default:
           expect(false).toEqual(true);
       }
-
-      j += 1;
+      j++;
     });
   });
 });
