@@ -1,5 +1,5 @@
 export type NodeName = string;
-export type Tuple<T> = [T, T];
+export type Tuple<T, K> = [T, K];
 
 export interface INode<T> {
   name: NodeName;
@@ -72,6 +72,10 @@ interface IEdgeMap {
   [nodeName: string]: NodeName[];
 }
 
+interface IChildCountMap {
+  [nodeName: string]: number;
+}
+
 /**
  * Traverse a graph defined by nodes and edges
  * @param {INode<T>[]} nodes - array of nodes
@@ -91,17 +95,22 @@ function _iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, opt
   // Stores the layer number for each node
   const nodeVisited: INodeVisited = {};
   const nodeMap: INodeMap<T> = arrToObj(nodes, 'name');
-  
+
   // map containing all outgoing edges per node
-  const edgeSrcMap = tuplesToObj<NodeName>(edges.map((edge) =>
-    [edge.src, edge.dst] as Tuple<NodeName>)) as IEdgeMap;
+  const edgeSrcMap = tuplesToObj<NodeName, NodeName>(edges.map((edge) =>
+    [edge.src, edge.dst] as Tuple<NodeName, NodeName>)) as IEdgeMap;
   
   // map containing all incoming edges per node
-  const edgeDstMap = tuplesToObj<NodeName>(edges.map((edge) =>
-    [edge.dst, edge.src] as Tuple<NodeName>)) as IEdgeMap;
+  const edgeDstMap = tuplesToObj<NodeName, NodeName>(edges.map((edge) =>
+    [edge.dst, edge.src] as Tuple<NodeName, NodeName>)) as IEdgeMap;
   
+    // map containing the node and its children count first
+  const childNodeCountMap = tuplesToObj<NodeName, number>(
+    nodes.map((n) => 
+        [n.name, getChildNodes(n.name).length] as Tuple<NodeName, number>)) as IChildCountMap;
+
   // Initialize the storage with all starting nodes
-  Array.prototype.push.apply(nodeStorage, getFirstNodes());
+  Array.prototype.push.apply(nodeStorage, getFirstNodes(options.traversalMode));
 
   let i = 0;
 
@@ -132,7 +141,10 @@ function _iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, opt
     
     // Only check adjacent nodes that have
     // not been visited yet
-    getChildNodes(node, true).forEach((childNode) => {
+    getChildNodes(node, true)
+        // Iterate the child node with more dependencies
+        .sort((nodeA, nodeB) => sortByChildCount(nodeA, nodeB, options.traversalMode))
+        .forEach((childNode) => {
       // Check if there are still any unvisited parents
       // of the next child which need to be visited first
       const unvisitedParents = getParentNodes(childNode, true);
@@ -150,13 +162,20 @@ function _iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, opt
    * Starting nodes have outgoing edges but no incoming edge
    * @return {NodeName[]} array of starting nodes
    */
-  function getFirstNodes(): NodeName[] {
+  function getFirstNodes(mode: TraversalMode): NodeName[] {
     return nodes.filter((node) => {
       return edgeSrcMap.hasOwnProperty(node.name) && !edgeDstMap.hasOwnProperty(node.name);
     })
-    .map(node => node.name);
+    .map(node => node.name)
+    // Iterate the first node with more dependencies first
+    .sort((nodeA, nodeB) => sortByChildCount(nodeA, nodeB, mode));
   }
 
+  function sortByChildCount(nodeA: NodeName, nodeB: NodeName, mode: TraversalMode): number {
+    return mode === TraversalMode.BFS ? 
+        childNodeCountMap[nodeB] - childNodeCountMap[nodeA] :
+        childNodeCountMap[nodeA] - childNodeCountMap[nodeB];
+  } 
   /**
    * Returns the next node from the array arr
    * depending on TraversalMode set in the options
@@ -213,8 +232,8 @@ function _iterate<T>(nodes: INode<T>[], edges: IEdge[], func: IteratorFn<T>, opt
  *  Converts an array of tuples to an object. All properties are arrays.
  *  [[a,b], [a,c], [c,d]] => {a: [b,c], c: [d]}
  */
-function tuplesToObj<T> (tuples: Tuple<T>[]): Object {
-  return tuples.reduce((prev: any, curr: Tuple<T>) => {
+function tuplesToObj<T, K> (tuples: Tuple<T, K>[]): Object {
+  return tuples.reduce((prev: any, curr: Tuple<T, K>) => {
     // load tuple [key,val] pair
     let key = curr[0], val = curr[1];
     // combine old and new value to an array
